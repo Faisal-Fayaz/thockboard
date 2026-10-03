@@ -16,7 +16,8 @@ Linux needs system packages first (Tauri plus the X11 input hooks):
 
 ```bash
 sudo apt install libwebkit2gtk-4.1-dev libxdo-dev libssl-dev \
-                 libayatana-appindicator3-dev librsvg2-dev build-essential
+                 libayatana-appindicator3-dev librsvg2-dev \
+                 libasound2-dev build-essential
 ```
 
 ## Before you build with cargo
