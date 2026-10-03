@@ -6,7 +6,7 @@ macOS". Platform work is the most useful contribution.
 ## Getting set up
 
 ```bash
-git clone https://github.com/Faisal01011/thockboard
+git clone https://github.com/Faisal-Fayaz/thockboard
 cd thockboard/app
 pnpm install
 pnpm tauri dev
