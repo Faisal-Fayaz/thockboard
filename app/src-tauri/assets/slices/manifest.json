@@ -1,0 +1,60 @@
+[
+  {
+    "license": "CC0",
+    "name": "Leopold FC660M",
+    "slices": [
+      "01.wav",
+      "02.wav",
+      "03.wav",
+      "04.wav",
+      "05.wav",
+      "06.wav",
+      "07.wav",
+      "08.wav",
+      "09.wav",
+      "10.wav"
+    ],
+    "sources": [
+      "450281__stu556__mechanical-keyboard-typing-bass-version.wav",
+      "450282__stu556__mechanical-keyboard-typing-treble-version.wav"
+    ]
+  },
+  {
+    "license": "CC0",
+    "name": "HHKB Topre",
+    "slices": [
+      "01.wav",
+      "02.wav",
+      "03.wav",
+      "04.wav",
+      "05.wav",
+      "06.wav",
+      "07.wav",
+      "08.wav",
+      "09.wav",
+      "10.wav"
+    ],
+    "sources": [
+      "546032__grcekh__keyboard-typing-1-hhkb-topre.mp3"
+    ]
+  },
+  {
+    "license": "CC0",
+    "name": "WhiteFox Hako Violet",
+    "slices": [
+      "01.wav",
+      "02.wav",
+      "03.wav",
+      "04.wav",
+      "05.wav",
+      "06.wav",
+      "07.wav",
+      "08.wav",
+      "09.wav",
+      "10.wav"
+    ],
+    "sources": [
+      "546045__grcekh__keyboard-typing-4-whitefox-mechanical.mp3"
+    ]
+  }
+]

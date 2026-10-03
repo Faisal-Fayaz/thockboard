@@ -1,0 +1,65 @@
+[package]
+name = "thockboard"
+version = "0.1.0"
+description = "Mechanical-keyboard sounds for any keyboard or mouse."
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "thockboard_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-opener = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rdev = "0.5"
+cpal = "0.15"
+crossbeam-channel = "0.5"
+arc-swap = "1.9"
+symphonia = { version = "0.5", default-features = false, features = [
+  # containers
+  "wav",
+  "ogg",
+  # codecs. `pcm` is what actually decodes a .wav - WAV is only a container,
+  # and with default-features off it is easy to forget and get "unsupported
+  # codec" on every .wav file in a pack.
+  "pcm",
+  "mp3",
+  "flac",
+  "vorbis",
+  "aac",
+  "adpcm",
+] }
+zip = { version = "8", default-features = false, features = ["deflate"] }
+
+# Only `rules.rs` uses this, behind a cfg(target_os = "linux") gate. Declared
+# per-target so Windows and macOS builds never pull in X11 libraries.
+[target.'cfg(target_os = "linux")'.dependencies]
+x11 = "2.21"
+
+
+[features]
+# Tauri only embeds the built frontend when this is on. Without it a plain
+# `cargo build` yields a binary that tries to load devUrl from the Vite server
+# and shows "Could not connect to localhost".
+custom-protocol = ["tauri/custom-protocol"]
+
+# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

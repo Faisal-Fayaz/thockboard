@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ThockBoard</title>
+    <style>
+      :root { color-scheme: dark; --bg:#14161a; --panel:#1b1e24; --line:#2b3038;
+              --fg:#dfe3e9; --dim:#79828f; --acc:#4f8cff; --acc2:#2ecc8f; }
+      * { box-sizing: border-box; }
+      body { background:var(--bg); color:var(--fg); margin:0;
+             font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
+      #win { display:flex; flex-direction:column; height:100vh; }
+
+      header { padding:14px 16px 10px; border-bottom:1px solid var(--line); }
+      h1 { font-size:14px; margin:0; letter-spacing:.02em; }
+      header .sub { color:var(--dim); font-size:11px; margin-top:1px; }
+
+      nav { display:flex; gap:2px; padding:8px 16px 0; border-bottom:1px solid var(--line); }
+      nav button { background:none; border:0; border-bottom:2px solid transparent;
+                   color:var(--dim); padding:6px 10px 7px; cursor:pointer; font:inherit; }
+      nav button.on { color:var(--fg); border-bottom-color:var(--acc); }
+
+      main { flex:1; overflow-y:auto; padding:14px 16px; }
+      .hidden { display:none; }
+
+      .row { display:flex; align-items:center; gap:8px; }
+      .grow { flex:1; }
+      label.lb { color:var(--dim); font-size:11px; }
+
+      #search { background:var(--panel); border:1px solid var(--line); color:var(--fg);
+                border-radius:6px; padding:6px 10px; font:inherit; width:100%; margin-bottom:10px; }
+      #packs { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+      .chip { background:var(--panel); border:1px solid var(--line); color:#b9c1cc;
+              border-radius:999px; padding:4px 11px; cursor:pointer; font:inherit; font-size:12px; }
+      .chip.on { background:var(--acc); border-color:var(--acc); color:#fff; }
+      .chip small { opacity:.65; margin-left:5px; }
+
+      #voices { display:flex; flex-direction:column; gap:3px; }
+      .vrow { display:flex; align-items:center; gap:9px; background:var(--panel);
+              border:1px solid transparent; border-radius:6px; padding:5px 8px; cursor:pointer; }
+      .vrow:hover { border-color:var(--line); }
+      .vrow.on { background:#1d2a38; border-color:#2f4a63; }
+      .vrow button.play { background:none; border:0; color:var(--dim); cursor:pointer;
+                         font:inherit; width:20px; text-align:left; padding:0; }
+      .vrow:hover button.play, .vrow.on button.play { color:var(--acc); }
+      canvas.wave { width:76px; height:22px; flex:none; }
+      .vname { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .vtag { color:var(--dim); font-size:10px; }
+
+      footer { border-top:1px solid var(--line); padding:9px 16px 11px; }
+      input[type=range] { accent-color:var(--acc); height:18px; }
+      .chk { display:flex; align-items:center; gap:5px; color:var(--dim); cursor:pointer; font-size:11px; }
+      button.act { background:var(--panel); border:1px solid var(--line); color:#b9c1cc;
+                   padding:5px 11px; border-radius:6px; cursor:pointer; font:inherit; font-size:12px; }
+      button.act:hover { border-color:#3d4653; }
+      button.act.on { background:var(--acc); border-color:var(--acc); color:#fff; }
+      button.act.danger:hover { border-color:#a03044; color:#e88; }
+
+      .slider { display:grid; grid-template-columns:74px 1fr 40px; align-items:center; gap:9px; margin:9px 0; }
+      .slider span.k { color:var(--dim); font-size:11px; }
+      .slider span.v { color:var(--acc); font-size:11px; text-align:right; }
+      #designWave { width:100%; height:64px; background:var(--panel);
+                    border:1px solid var(--line); border-radius:6px; }
+      input.txt, select { background:var(--panel); border:1px solid var(--line); color:var(--fg);
+                          border-radius:6px; padding:5px 9px; font:inherit; }
+      .hint { color:var(--dim); font-size:11px; margin:8px 0 0; }
+      .rule { display:grid; grid-template-columns:1fr 96px 30px; gap:6px; margin-bottom:6px; }
+      .hd { font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+            color:var(--dim); margin:0 0 8px; font-weight:600; }
+      #focusApp { color:var(--acc2); }
+      #onboard { position:fixed; inset:0; background:rgba(10,12,15,.92); display:flex;
+                 align-items:center; justify-content:center; padding:24px; z-index:9; }
+      #onboard .card { max-width:420px; }
+      #onboard h2 { font-size:15px; margin:0 0 10px; }
+      #onboard p { color:#aeb7c2; }
+      #onboard .dots { color:var(--dim); margin-top:14px; font-size:11px; }
+    </style>
+  </head>
+  <body>
+    <div id="win">
+      <header>
+        <h1>ThockBoard</h1>
+        <div class="sub">mechanical keyboard sounds for any keyboard</div>
+      </header>
+
+      <nav>
+        <button data-tab="lib" class="on">Library</button>
+        <button data-tab="make">Create</button>
+        <button data-tab="rules">Rules</button>
+      </nav>
+
+      <main>
+        <!-- Library -->
+        <section id="tab-lib">
+          <input id="search" placeholder="search sounds and packs..." />
+          <div id="packs"></div>
+          <div id="voices"></div>
+          <p class="hint" id="libHint"></p>
+        </section>
+
+        <!-- Perceptual designer -->
+        <section id="tab-make" class="hidden">
+          <div class="row" style="margin-bottom:10px">
+            <span class="lb">base</span>
+            <select id="basePack" class="grow"></select>
+            <select id="baseVoice"></select>
+          </div>
+
+          <div class="slider">
+            <span class="k">pitch</span>
+            <input id="sPitch" type="range" min="0" max="100" value="50" />
+            <span class="v" id="vPitch">50</span>
+          </div>
+          <div class="slider">
+            <span class="k">attack</span>
+            <input id="sAttack" type="range" min="0" max="100" value="50" />
+            <span class="v" id="vAttack">50</span>
+          </div>
+          <div class="slider">
+            <span class="k">resonance</span>
+            <input id="sRes" type="range" min="0" max="100" value="50" />
+            <span class="v" id="vRes">50</span>
+          </div>
+          <div class="slider">
+            <span class="k">loudness</span>
+            <input id="sLoud" type="range" min="0" max="100" value="70" />
+            <span class="v" id="vLoud">70</span>
+          </div>
+
+          <canvas id="designWave"></canvas>
+
+          <div class="row" style="margin-top:11px">
+            <input id="newName" class="grow" placeholder="name this sound..." />
+            <button class="act" id="saveSound">Save as pack</button>
+          </div>
+          <p class="hint">
+            A sound is a recipe, not a recording: a few hundred bytes of numbers
+            describing how a switch resonates. Saved packs are plain text, so they
+            can be shared or version-controlled.
+          </p>
+        </section>
+
+        <!-- Per-app rules -->
+        <section id="tab-rules" class="hidden">
+          <p class="hd">when the focused app matches, then</p>
+          <div id="rules"></div>
+          <div class="row" style="margin-top:8px">
+            <button class="act" id="addRule">Add rule</button>
+            <span class="lb grow" style="text-align:right">
+              focused app: <span id="focusApp">-</span>
+            </span>
+          </div>
+          <p class="hint">
+            Matching is a case-insensitive substring. First match wins, so the list
+            reads top to bottom. Add the focused app name above to see what to match.
+          </p>
+        </section>
+      </main>
+
+      <footer>
+        <div class="row" style="margin-bottom:7px">
+          <span class="lb">volume</span>
+          <input id="volume" type="range" min="0" max="100" value="70" style="flex:1" />
+          <span class="lb" id="volLabel">70%</span>
+          <button class="act" id="toggle">Mute</button>
+        </div>
+        <div class="row" style="flex-wrap:wrap;gap:11px">
+          <label class="chk"><input id="release" type="checkbox" /> release</label>
+          <label class="chk"><input id="scroll" type="checkbox" /> scroll</label>
+          <span class="grow"></span>
+          <button class="act" id="openPacks">packs folder</button>
+          <button class="act" id="reload">reload</button>
+          <button class="act danger" id="selftest">self-test</button>
+        </div>
+      </footer>
+    </div>
+
+    <div id="onboard">
+      <div class="card">
+        <h2>Mechanical sounds, any keyboard</h2>
+        <p>
+          ThockBoard replaces whatever your keyboard sounds like with the sound
+          you want &mdash; a deep thock, a bright clack, a vintage typewriter.
+        </p>
+        <p>
+          Pick a sound from the library and start typing. Everything is generated
+          on the fly, so nothing is recorded and nothing leaves your machine.
+        </p>
+        <p class="dots">Best with headphones. Press <b>Ctrl+Alt+M</b> to mute.</p>
+        <div class="row" style="margin-top:16px">
+          <button class="act on" id="startBtn">Get started</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

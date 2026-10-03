@@ -1,0 +1,35 @@
+# Rust / Cargo
+target/
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+
+# Source recordings used to re-slice the built-in boards.
+# These are CC0 and ~69MB. The derived slices in app/src-tauri/assets/slices/
+# ARE committed, so building the app never needs these. See
+# tools/fetch-reference.md to obtain them.
+reference/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Local env / editor
+*.local
+.env
+.env.*
+!.env.example
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
