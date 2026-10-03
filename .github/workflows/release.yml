@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to publish (e.g. v0.1.0)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      # One platform failing should not hide the others' artifacts.
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-latest
+            bundles: deb,appimage
+          - platform: windows-latest
+            bundles: msi,nsis
+          - platform: macos-latest
+            bundles: app,dmg
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'linux-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libasound2-dev \
+            build-essential \
+            fakeroot \
+            dpkg-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri -> target
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: ThockBoard ${{ github.event.inputs.tag || github.ref_name }}
+          releaseBody: |
+            Native-audio mechanical keyboard sounds for any keyboard.
+
+            ### Install
+
+            **Linux** — `.deb` for Debian/Ubuntu, `.AppImage` for anything else:
+            ```
+            sudo apt install ./thockboard_*_amd64.deb
+            ```
+            chmod +x thockboard_*_amd64.AppImage && ./thockboard_*_amd64.AppImage
+
+            **Windows** — run the `.msi`.
+
+            **macOS** — open the `.dmg` and drag to Applications.
+
+            These artifacts are **unsigned**. macOS Gatekeeper and Windows
+            SmartScreen will warn on first launch. On macOS use System Settings ->
+            Privacy & Security -> Open Anyway. On Windows choose More info -> Run
+            anyway.
+
+            ### Platform status
+
+            Linux/X11 is the working platform. Windows and macOS build and are
+            expected to work but have not been tested on real hardware. Wayland is
+            not supported. On macOS, global keyboard hooks require Accessibility
+            permission in System Settings -> Privacy & Security -> Accessibility.
+
+            ### Notes
+
+            The icon is still the stock Tauri logo. Custom sounds and per-app rules
+            are Linux-only for now.
+          releaseDraft: true
+          prerelease: false
+          args: --bundles ${{ matrix.bundles }}

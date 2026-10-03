@@ -36,11 +36,28 @@ honest: as a tool for custom sounds.
 
 ## Install
 
-Linux, from a release:
+Grab a release artifact: https://github.com/Faisal-Fayaz/thockboard/releases
 
 ```bash
-sudo apt install ./thockboard_*.deb     # or run the AppImage
+# Linux, Debian/Ubuntu
+sudo apt install ./ThockBoard_*_amd64.deb
+
+# Linux, anything else
+chmod +x ThockBoard_*_amd64.AppImage && ./ThockBoard_*_amd64.AppImage
+
+# Windows: run the .msi
+# macOS:   open the .dmg and drag to Applications
 ```
+
+**These artifacts are unsigned.** macOS Gatekeeper and Windows SmartScreen will warn on
+first launch. On macOS use System Settings -> Privacy & Security -> Open Anyway. On
+Windows choose More info -> Run anyway.
+
+On macOS, global keyboard hooks additionally require Accessibility permission in
+System Settings -> Privacy & Security -> Accessibility. Without it the app runs but
+hooks do nothing.
+
+The icon is still the stock Tauri logo.
 
 ## Build from source
 
@@ -79,6 +96,12 @@ Debian/Ubuntu, needed for Tauri and for global input hooks:
 sudo apt install libwebkit2gtk-4.1-dev libxdo-dev libssl-dev \
                  libayatana-appindicator3-dev librsvg2-dev \
                  libasound2-dev build-essential
+```
+
+To produce installers rather than just run it, also need `fakeroot` and `dpkg-dev`:
+
+```bash
+sudo apt install fakeroot dpkg-dev
 ```
 
 ## Platform support

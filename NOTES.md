@@ -150,7 +150,7 @@ No errors.
 User confirmed the app "works good" with physical keystrokes and headphones. That
 closes the one measurement synthetic events could not stand in for.
 
-### Binary size: **5.9MB**
+### Binary size: **8.05MB**
 
 Validates Tauri decisively — Electron's floor was ~150MB, and for a $15
 impulse-download utility the download size is the conversion factor.
@@ -259,12 +259,12 @@ becomes a complaint.
 
 | Artifact | Size | Notes |
 |---|---|---|
-| `thockboard` binary | 5.9MB | stripped; what users actually run |
+| `thockboard` binary | 8.05MB | stripped; what users actually run |
 | `.deb` | **2.6MB** | Installed-Size 6548 KB. Correct deps declared |
-| `.AppImage` | **80MB** | Self-contained; bundles webkit + glibc |
+| `.AppImage` | **80.4MiB** | Self-contained; bundles webkit + glibc |
 
 **The 31x size gap is the distribution story for Linux.** Most users are better
-served by `apt install` of a 2.6MB deb than an 80MB AppImage. AppImage is only for
+served by `apt install` of a 3.2MiB deb than an 80MiB AppImage. AppImage is only for
 people who cannot install packages.
 
 AppImage build needs to download AppRun + linuxdeploy from GitHub releases; that
@@ -282,17 +282,25 @@ logo icons. Fixed:
 - result: `/usr/bin/thockboard`, `ThockBoard.desktop` with `Exec=thockboard`,
   icons `thockboard.png`
 
-Identifier changed `dev.thockboard.app` -> `dev.thockboard.client`. Tauri warns that an
-identifier ending in `.app` conflicts with the macOS bundle extension — relevant since
-macOS is still to come.
+Identifier has changed twice: `dev.thockboard.app` -> `dev.thockboard.client` ->
+`dev.faisal.thockboard`. The first change was because Tauri warns that an identifier
+ending in `.app` conflicts with the macOS bundle extension.
+
+The identifier names the config directory, so renaming it orphans user data:
+`~/.config/dev.thockboard.client/` became `~/.config/dev.faisal.thockboard/`. The local
+copy was migrated by hand. Any Tauri autostart entry is keyed by identifier too, so it
+is orphaned by a rename and has to be re-created. Both are the reason to settle the
+identifier *before* the first release rather than after.
 
 **Icons are still the stock Tauri logo.** Nothing in this build made a real icon.
 
 ## What is still missing for a real release
 
 1. ~~Tray icon, autostart, global hotkey.~~ **Done**, hotkey verified with real keys.
-2. **Packaging.** Linux done (deb 2.6MB, AppImage 80MB). **DMG needs a Mac, MSI needs
-   a Windows cert** or SmartScreen blocks the download.
+2. **Packaging.** Done on CI: deb 3.2MiB, AppImage 80.4MiB, msi/nsis, dmg/app.
+   **Unsigned.** DMG and MSI build fine on hosted runners — no Mac or Windows cert is
+   needed to *build* them; a cert only controls whether users get an unverified-writer
+   warning. macOS Gatekeeper and Windows SmartScreen will still prompt on first run.
 3. **Licensing.** Lemon Squeezy or Paddle for the free-starter + $15 unlock model.
 4. **A real app icon.** Still the stock Tauri logo. Zero effort, high visibility.
 5. **macOS Accessibility permission UX.** `CGEventTap` requires it, and this is the
@@ -414,12 +422,12 @@ Removed rather than shipped as a no-op.
 
 | | |
 |---|---|
-| Built-in sounds | 31 across 8 packs |
+| Built-in sounds | 31 synthesized across 8 packs, plus 30 CC0 recorded strikes across 3 real boards |
 | Custom pack formats | recipe JSON, Mechvibes v1/v2, loose audio folders, zip |
 | Stream latency | `64/44100` = 1.45ms (unchanged through the whole refactor) |
-| Binary | 5.9MB |
-| .deb | 3.1MB |
-| AppImage | 80MB |
+| Binary | 8.05MB |
+| .deb | 3.2MiB |
+| AppImage | 80.4MiB |
 | RSS | 213MB (WebKitGTK, not our buffers) |
 | Test fixtures | `test-mv` and `test-recipe` left in the packs folder on purpose |
 

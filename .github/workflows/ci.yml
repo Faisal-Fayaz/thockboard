@@ -83,9 +83,9 @@ jobs:
           cargo build --release --locked --manifest-path tools/slicer/Cargo.toml
           tools/slicer/target/release/slicer --selftest
 
-  # Full bundles, to prove packaging works and the icon formats resolve. Windows
-  # and macOS only: AppImage builds are slow and flaky in containers, and the
-  # compile check above already covers the common failure.
+  # Full bundles, to prove packaging works and the icon formats resolve. Linux is
+  # included deliberately: it is the only platform that actually works today, so
+  # its packaging is the one most worth catching before a release.
   bundle:
     name: bundle (${{ matrix.os }})
     needs: rust
@@ -93,9 +93,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libasound2-dev \
+            build-essential \
+            fakeroot \
+            dpkg-dev \
+            rpm
 
       - uses: dtolnay/rust-toolchain@stable
       - uses: pnpm/action-setup@v4
@@ -119,6 +135,8 @@ jobs:
         with:
           name: thockboard-${{ matrix.os }}
           path: |
+            app/src-tauri/target/release/bundle/**/*.deb
+            app/src-tauri/target/release/bundle/**/*.AppImage
             app/src-tauri/target/release/bundle/**/*.msi
             app/src-tauri/target/release/bundle/**/*.dmg
             app/src-tauri/target/release/bundle/**/*.app.tar.gz
